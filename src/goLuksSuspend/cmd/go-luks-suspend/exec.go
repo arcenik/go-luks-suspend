@@ -142,7 +142,7 @@ func runSystemSuspendScripts(scriptarg string) error {
 
 	for i := range fs {
 		if err := checkRootOwnedAndExecutable(fs[i]); err != nil {
-			g.Warn(err.Error())
+			g.Warn(err.Error(), "go-luks-suspend/runSystemSuspendScripts(scriptarg string)")
 			continue
 		}
 
@@ -193,7 +193,7 @@ func enableWriteBarriers(filesystems []filesystem) {
 	for i := range filesystems {
 		// The underlying device may have disappeared
 		if !filesystems[i].isMounted() {
-			g.Warn("[WARNING] missing filesystem mounted at " + filesystems[i].mountpoint)
+			g.Warn("[WARNING] missing filesystem mounted at "+filesystems[i].mountpoint, "go-luks-suspend/enableWriteBarriers(filesystems []filesystem)")
 			continue
 		}
 		if err := filesystems[i].enableWriteBarrier(); err != nil {
@@ -201,7 +201,7 @@ func enableWriteBarriers(filesystems []filesystem) {
 				"[WARNING] mount %s REMOUNT BARRIER: %s",
 				filesystems[i].mountpoint,
 				err.Error(),
-			))
+			), "go-luks-suspend/enableWriteBarriers(filesystems []filesystem)")
 		}
 	}
 }
@@ -272,20 +272,20 @@ func resumeCryptdevicesWithKeyfiles(cryptdevs []g.Cryptdevice) {
 				if !cd.Suspended() {
 					continue
 				} else if !cd.Exists() {
-					g.Warn("[WARNING] missing cryptdevice " + cd.Name)
+					g.Warn("[WARNING] missing cryptdevice "+cd.Name, "go-luks-suspend/resumeCryptdevicesWithKeyfiles")
 					continue
 				} else if !cd.Keyfile.Available() {
-					g.Warn(fmt.Sprintf("[WARNING] keyfile for cryptdevice %s unavailable; skipping", cd.Name))
+					g.Warn(fmt.Sprintf("[WARNING] keyfile for cryptdevice %s unavailable; skipping", cd.Name), "go-luks-suspend/resumeCryptdevicesWithKeyfiles")
 					continue
 				}
 
-				g.Warn("Resuming " + cd.Name)
+				g.Warn("Resuming "+cd.Name, "go-luks-suspend/resumeCryptdevicesWithKeyfiles")
 
 				err := cd.ResumeWithKeyfile()
 				if err != nil {
-					g.Warn(fmt.Sprintf("[ERROR] failed to resume %s: %s", cd.Name, err.Error()))
+					g.Warn(fmt.Sprintf("[ERROR] failed to resume %s: %s", cd.Name, err.Error()), "go-luks-suspend/resumeCryptdevicesWithKeyfiles")
 				} else {
-					g.Warn(cd.Name + " resumed")
+					g.Warn(cd.Name+" resumed", "go-luks-suspend/resumeCryptdevicesWithKeyfiles")
 				}
 			}
 			wg.Done()

@@ -7,9 +7,10 @@ import (
 )
 
 func main() {
+	g.Debug("invoke main function", "initramfs-suspend/main")
 	g.ParseFlags()
 
-	g.Debug("loading cryptdevices")
+	g.Debug("loading cryptdevices", "initramfs-suspend/main")
 	r := os.NewFile(uintptr(3), "r")
 	cryptdevs, err := loadCryptdevices(r)
 	g.Assert(err)
@@ -17,22 +18,22 @@ func main() {
 
 	if len(cryptdevs) == 0 {
 		// This branch should be impossible.
-		g.Warn("no cryptdevices found, doing normal suspend")
-		g.Assert(g.SuspendToRAM())
+		g.Warn("no cryptdevices found, doing normal suspend", "initramfs-suspend/main")
+		g.Assert(g.Suspend())
 		return
 	}
 
 	if cryptdevs[0].Keyfile.Defined() {
-		g.Debug("starting udevd from initramfs")
+		g.Debug("starting udevd from initramfs", "initramfs-suspend/main")
 		g.Assert(startUdevDaemon())
 
 		defer func() {
-			g.Debug("stopping udevd within initramfs")
+			g.Debug("stopping udevd within initramfs", "initramfs-suspend/main")
 			g.Assert(stopUdevDaemon())
 		}()
 	}
 
-	g.Debug("suspending cryptdevices")
+	g.Debug("suspending cryptdevices", "initramfs-suspend/main")
 	g.Assert(suspendCryptdevices(cryptdevs))
 
 	// Crypt keys have been purged, so be less paranoid
@@ -49,13 +50,9 @@ func main() {
 		g.Assert(err)
 	}
 
-	if g.DebugMode {
-		g.Debug("debug: skipping suspend to RAM")
-	} else {
-		g.Assert(g.SuspendToRAM())
-	}
+	g.Assert(g.Suspend())
 
-	g.Debug("resuming root cryptdevice")
+	g.Debug("resuming root cryptdevice", "initramfs-suspend/main")
 	for {
 		var err error
 		for i := 0; i < 3; i++ {

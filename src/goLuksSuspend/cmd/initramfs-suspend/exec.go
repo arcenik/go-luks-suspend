@@ -85,7 +85,7 @@ func resumeRootCryptdevice(rootdev *g.Cryptdevice) error {
 	}
 
 	if err != nil {
-		g.Warn(err.Error())
+		g.Warn(err.Error(), "initramfs-suspend/resumeRootCryptdevice")
 		return luksResume(rootdev, os.Stdin)
 	}
 
@@ -93,8 +93,8 @@ func resumeRootCryptdevice(rootdev *g.Cryptdevice) error {
 	r := editreader.New(os.Stdin, 4096, true, func(i int, b byte) editreader.Op {
 		switch b {
 		case 0x1b: // ^[
-			g.Debug("suspending to RAM")
-			g.Assert(g.SuspendToRAM())
+			g.Debug("suspending", "initramfs-suspend/resumeRootCryptdevice")
+			g.Assert(g.Suspend())
 			fmt.Println()
 			printPassphrasePrompt(rootdev)
 			return editreader.Kill
